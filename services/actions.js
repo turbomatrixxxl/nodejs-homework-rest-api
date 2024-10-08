@@ -10,7 +10,7 @@ async function listContacts() {
     const data = await fs.readFile(contactsPath, "utf-8");
     const contacts = JSON.parse(data);
 
-    console.table(contacts);
+    // console.table(contacts);
     return contacts;
   } catch (error) {
     console.log("Error on reading file...!");
@@ -29,7 +29,7 @@ async function listContactById(contactId) {
     const contact = contacts.find((contact) => contact.id === contactId);
 
     if (!contact) {
-      console.log(`Contact with id ${contactId} does not exists !`);
+      // console.log(`Contact with id ${contactId} does not exists !`);
       return false;
     }
 
@@ -46,18 +46,18 @@ async function listContactById(contactId) {
 //! add contact
 async function addContact({ name, email, phone }) {
   if (!name) {
-    console.log("Please enter name ...!");
+    // console.log("Please enter name ...!");
 
     return;
   }
   if (!email) {
-    console.log("Please enter email ...!");
+    // console.log("Please enter email ...!");
 
     return;
   }
 
   if (!phone) {
-    console.log("Please enter phone ...!");
+    // console.log("Please enter phone ...!");
 
     return;
   }
@@ -128,74 +128,17 @@ async function deleteContact(id) {
   }
 }
 
-// deleteTask("sa uit");
-
-//! update tasks
-// async function updateTask({ id, task, completed }) {
-//   try {
-//     const data = await fs.readFile(contactsPath, "utf-8");
-//     const tasks = JSON.parse(data);
-
-//     // Find the task by id
-//     const taskToUpdate = tasks.find((taskItem) => taskItem.id === id);
-
-//     if (taskToUpdate === undefined) {
-//       console.log("Acest task nu exista...! Vom crea unul nou !");
-
-//       // Create a new task if it doesn't exist
-//       const newTask = {
-//         id: id,
-//         task: typeof task === "undefined" ? "trebuie sa adaugi un task" : task,
-//         completed: typeof completed === "undefined" ? false : completed,
-//       };
-
-//       tasks.push(newTask);
-
-//       // Write updated tasks to file and return
-//       await fs.writeFile(contactsPath, JSON.stringify(tasks, null, 2));
-//       return tasks;
-//     }
-
-//     // Update the task with new values, keeping old ones if not provided
-//     const updatedTask = {
-//       id: taskToUpdate.id,
-//       task: typeof task === "undefined" ? taskToUpdate.task : task,
-//       completed:
-//         typeof completed === "undefined" ? taskToUpdate.completed : completed,
-//     };
-
-//     // Filter out the old task and create a new list
-//     const restTasks = tasks.filter((taskItem) => taskItem.id !== id);
-//     const newTasks = [...restTasks, updatedTask];
-//     // Write the updated task list back to the file
-//     await fs.writeFile(contactsPath, JSON.stringify(newTasks, null, 2));
-
-//     // Return the updated task list
-//     return newTasks;
-//   } catch (error) {
-//     console.log("Eroare la citire fisier...!", error);
-//     throw error;
-//   }
-// }
-
-// Example usage:
-// updateTask({ id: "2", task: "sa citesc o carte", completed: true });
-
-// Call the function with an object
-// updateTask({ id: "2", task: "sa uitt", completed: false });
-// updateTask({ id: "2", completed: true });
-
 //! Inlocuieste resursa partial  cu findIndex
 async function patchContact({ id, name, email, phone }) {
   try {
     const data = await fs.readFile(contactsPath, "utf-8");
     const contacts = JSON.parse(data);
-    // console.log(tasks);
+    // console.log(contacts);
 
     const contactIndex = contacts.findIndex((contact) => contact.id === id);
 
     if (contactIndex === -1) {
-      console.log("This contact does not exists...!");
+      // console.log("This contact does not exists...!");
       return false;
     }
 
@@ -213,15 +156,12 @@ async function patchContact({ id, name, email, phone }) {
 
     await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
 
-    // console.table(tasks);
     return contacts;
   } catch (error) {
     console.log("Error on patching file...!", error);
     throw error;
   }
 }
-
-// patchTask({ id: "2", task: "sa ma uitt", completed: false });
 
 module.exports = {
   listContacts,

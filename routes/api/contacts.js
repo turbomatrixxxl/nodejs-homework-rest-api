@@ -32,7 +32,7 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:contactId", async (req, res, next) => {
   const id = req.params.contactId;
-  console.log(id);
+  // console.log(id);
 
   try {
     const contact = await listContactById(id);
