@@ -1,10 +1,41 @@
-const models = require("../models/index");
+const models = require("../services/contactsServices");
+
+const jwt = require("jsonwebtoken");
 
 const Joi = require("joi");
 
+require("dotenv").config();
+const secret = process.env.JWT_SECRET;
+
 const getContacts = async (req, res, next) => {
+  const { page, limit, favorite } = req.query;
+
   try {
-    const contacts = await models.listContacts();
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader);
+
+    if (!authHeader) {
+      // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+      return res
+        .status(401)
+        .json({ status: "error", message: "Missing Authorization header" });
+    }
+
+    // Extrageți token-ul eliminând prefixul "Bearer "
+    const token = authHeader.split(" ")[1];
+    console.log(token);
+
+    // Verificați token-ul utilizând cheia secretă
+    const user = jwt.verify(token, secret);
+    // console.log(user);
+
+    const userId = user.id;
+
+    const contacts = await models.getContacts(userId, {
+      page,
+      limit,
+      favorite,
+    });
     res.status(200).json({
       status: "success",
       code: "200",
@@ -16,6 +47,7 @@ const getContacts = async (req, res, next) => {
       status: "fail",
       code: 500,
       message: "Contacts listing error...!",
+      data: error.message,
     });
     next(error);
   }
@@ -26,7 +58,27 @@ const getContactsById = async (req, res, next) => {
   // console.log(id);
 
   try {
-    const contact = await models.getContactById(id);
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader);
+
+    if (!authHeader) {
+      // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+      return res
+        .status(401)
+        .json({ status: "error", message: "Missing Authorization header" });
+    }
+
+    // Extrageți token-ul eliminând prefixul "Bearer "
+    const token = authHeader.split(" ")[1];
+    console.log(token);
+
+    // Verificați token-ul utilizând cheia secretă
+    const user = jwt.verify(token, secret);
+    // console.log(user);
+
+    const userId = user.id;
+
+    const contact = await models.getContactById(userId, id);
     // console.table(contact);
 
     if (!contact) {
@@ -85,7 +137,28 @@ const createContact = async (req, res, next) => {
         return res.status(400).json({ error: error.details[0].message });
       } else {
         try {
-          const newContact = await models.addContact({
+          const authHeader = req.headers.authorization;
+          // console.log(authHeader);
+
+          if (!authHeader) {
+            // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+            return res.status(401).json({
+              status: "error",
+              message: "Missing Authorization header",
+            });
+          }
+
+          // Extrageți token-ul eliminând prefixul "Bearer "
+          const token = authHeader.split(" ")[1];
+          // console.log(token);
+
+          // Verificați token-ul utilizând cheia secretă
+          const user = jwt.verify(token, secret);
+          // console.log(user);
+
+          const userId = user.id;
+
+          const newContact = await models.createContact(userId, {
             name: name,
             email: email,
             phone: phone,
@@ -112,14 +185,37 @@ const createContact = async (req, res, next) => {
 };
 
 const deleteContact = async (req, res, next) => {
-  const id = req.params.contactId;
+  const contactId = req.params.contactId;
 
   try {
-    const deletedContact = await models.removeContact(id);
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader);
+
+    if (!authHeader) {
+      // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+      return res.status(401).json({
+        status: "error",
+        message: "Missing Authorization header",
+      });
+    }
+
+    // Extrageți token-ul eliminând prefixul "Bearer "
+    const token = authHeader.split(" ")[1];
+    // console.log(token);
+
+    // Verificați token-ul utilizând cheia secretă
+    const user = jwt.verify(token, secret);
+    // console.log(user);
+
+    const userId = user.id;
+
+    const deletedContact = await models.deleteContact(userId, contactId);
     if (!deletedContact) {
-      res.status(404).json({ message: `contact with id:${id} not found` });
+      res
+        .status(404)
+        .json({ message: `contact with id:${contactId} not found` });
     } else {
-      res.status(200).json({ message: `contact with id:${id} deleted` });
+      res.status(200).json({ message: `contact with id:${contactId} deleted` });
     }
   } catch (error) {
     res.status(500).json({
@@ -132,7 +228,7 @@ const deleteContact = async (req, res, next) => {
 };
 
 const updateContact = async (req, res, next) => {
-  const id = req.params.contactId;
+  const contactId = req.params.contactId;
   const { name, email, phone } = req.body;
 
   // Check for at least one field to update
@@ -170,7 +266,28 @@ const updateContact = async (req, res, next) => {
   }
 
   try {
-    const updatedContact = await models.updateContact(id, {
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader);
+
+    if (!authHeader) {
+      // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+      return res.status(401).json({
+        status: "error",
+        message: "Missing Authorization header",
+      });
+    }
+
+    // Extrageți token-ul eliminând prefixul "Bearer "
+    const token = authHeader.split(" ")[1];
+    // console.log(token);
+
+    // Verificați token-ul utilizând cheia secretă
+    const user = jwt.verify(token, secret);
+    // console.log(user);
+
+    const userId = user.id;
+
+    const updatedContact = await models.updateContact(userId, contactId, {
       ...updatedElements,
     });
 
@@ -183,7 +300,7 @@ const updateContact = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       code: 200,
-      message: `Success updating contact with id:${id}...!`,
+      message: `Success updating contact with id:${contactId}...!`,
       data: updatedContact,
     });
   } catch (error) {
@@ -198,13 +315,32 @@ const updateContact = async (req, res, next) => {
 };
 
 const updateFavoriteStatus = async (req, res, next) => {
-  const id = req.params.contactId;
+  const contactId = req.params.contactId;
   const { favorite = false } = req.body;
 
   try {
-    // console.log(id);
+    const authHeader = req.headers.authorization;
+    // console.log(authHeader);
 
-    const result = await models.updateContact(id, { favorite });
+    if (!authHeader) {
+      // Dacă antetul "Authorization" lipsește, returnați o eroare de autentificare
+      return res.status(401).json({
+        status: "error",
+        message: "Missing Authorization header",
+      });
+    }
+
+    // Extrageți token-ul eliminând prefixul "Bearer "
+    const token = authHeader.split(" ")[1];
+    // console.log(token);
+
+    // Verificați token-ul utilizând cheia secretă
+    const user = jwt.verify(token, secret);
+    // console.log(user);
+
+    const userId = user.id;
+
+    const result = await models.updateContact(userId, contactId, { favorite });
 
     if (result) {
       res.json({
@@ -216,7 +352,7 @@ const updateFavoriteStatus = async (req, res, next) => {
       res.status(404).json({
         status: "error",
         code: 404,
-        message: `Not found Contact id: ${id}`,
+        message: `Not found Contact id: ${contactId}`,
         data: "Not Found",
       });
     }
