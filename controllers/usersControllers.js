@@ -5,10 +5,16 @@ const {
   getUserById,
   loginUser,
   logoutUser,
+  updateUser,
   updateSubscription,
 } = require("../services/userServices");
 
 const { validateUser } = require("../middlewares/validationMiddleware");
+
+const fs = require("fs").promises;
+const path = require("path");
+
+const { Jimp } = require("jimp");
 
 require("dotenv").config();
 const secret = process.env.JWT_SECRET;
@@ -171,5 +177,75 @@ exports.updateSubscription = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateUseravatar = async (req, res) => {
+  try {
+    const tempDir = path.join(__dirname, "../temp");
+
+    // Create the directory if it doesn't exist
+    await fs.mkdir(tempDir, { recursive: true });
+
+    const avatarsDir = path.join(__dirname, "../public/avatars");
+    // console.log(avatarsDir);
+
+    // Create the directory if it doesn't exist
+    await fs.mkdir(avatarsDir, { recursive: true });
+
+    if (!req.file) {
+      return res.status(404).json({ error: "There is no file to upload!" });
+    }
+
+    // console.log(req.user.avatarURL);
+
+    // Generate unique filename
+    const uniqFilename = `${req.user._id}-${Date.now()}${path.extname(
+      req.file.originalname
+    )}`;
+    // console.log(uniqFilename);
+
+    const imagePath = req.file.path;
+    // console.log(imageName);
+
+    const tempPath = path.join(tempDir, uniqFilename);
+
+    // Move file to avatars directory
+    await fs.rename(imagePath, tempPath);
+
+    // Resize the image
+    const image = await Jimp.read(`${tempPath}`);
+    // console.log(image);
+
+    // Resize the image to width 250 and heigth 250.
+    image.resize({ w: 250, h: 250 });
+
+    // Save and overwrite the image
+    await image.write(tempPath);
+
+    const destinationPath = path.join(avatarsDir, uniqFilename);
+
+    // Move file to avatars directory
+    await fs.rename(tempPath, destinationPath);
+
+    const updateFields = {};
+
+    // Update user avatar URL
+    const newAvatarURL = `/avatars/${uniqFilename}`;
+    const userId = req.user._id;
+
+    updateFields.avatarURL = newAvatarURL;
+
+    const updatedUser = await updateUser(userId, updateFields);
+
+    res.status(200).json({ avatarUrl: updatedUser.avatarURL });
+  } catch (error) {
+    console.error("Error in uploading avatar:", error.message);
+    res.status(500).json({
+      status: "fail",
+      code: 500,
+      message: error.message,
+      data: "Internal Server Error",
+    });
   }
 };

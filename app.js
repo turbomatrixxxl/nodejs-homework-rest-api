@@ -9,6 +9,8 @@ const corsOptions = require("./cors");
 const usersRouter = require("./routes/api/usersRoutes");
 const contactsRouter = require("./routes/api/contactsRoutes");
 
+const path = require("path");
+
 const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
@@ -18,6 +20,8 @@ app.use(cors(corsOptions));
 app.use(express.json());
 // app.use(logger("tiny"));
 app.use(passport.initialize());
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api", usersRouter);
 app.use("/api", contactsRouter);

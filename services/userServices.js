@@ -59,6 +59,23 @@ const logoutUser = async (userId) => {
   return loggedOutUser;
 };
 
+const updateUser = async (userId, fields) => {
+  try {
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      throw new Error(`User with id ${userId} not exists!`);
+    }
+
+    return await User.findByIdAndUpdate({ _id: userId }, fields, {
+      new: true,
+    });
+  } catch (error) {
+    console.log(error.message);
+    throw error;
+  }
+};
+
 // Update user subscription
 const updateSubscription = async (userId, { subscription }) => {
   const isValidSubscription = (subscription) => {
@@ -86,5 +103,6 @@ module.exports = {
   loginUser,
   getUserById,
   logoutUser,
+  updateUser,
   updateSubscription,
 };
