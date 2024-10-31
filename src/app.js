@@ -11,6 +11,14 @@ const contactsRouter = require("./routes/api/contactsRoutes");
 
 const path = require("path");
 
+const sgMail = require("@sendgrid/mail");
+require("dotenv").config();
+
+const sendGridApiKey = process.env.SENDGRID_API_KEY;
+if (!sendGridApiKey) throw new Error("SendGrid API key is missing.");
+
+sgMail.setApiKey(sendGridApiKey);
+
 const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
@@ -19,12 +27,13 @@ app.use(logger(formatsLogger));
 app.use(cors(corsOptions));
 app.use(express.json());
 // app.use(logger("tiny"));
-app.use(passport.initialize());
 
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api", usersRouter);
 app.use("/api", contactsRouter);
+
+app.use(passport.initialize());
 
 app.use((_, res, __) => {
   res.status(404).json({
